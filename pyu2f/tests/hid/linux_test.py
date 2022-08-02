@@ -49,8 +49,8 @@ KEYBOARD_RD = (
 
 def AddDevice(fs, dev_name, product_name,
               vendor_id, product_id, report_descriptor_b64):
-  uevent = fs.CreateFile('/sys/class/hidraw/%s/device/uevent' % dev_name)
-  rd = fs.CreateFile('/sys/class/hidraw/%s/device/report_descriptor' % dev_name)
+  uevent = fs.CreateFile(f'/sys/class/hidraw/{dev_name}/device/uevent')
+  rd = fs.CreateFile(f'/sys/class/hidraw/{dev_name}/device/report_descriptor')
   report_descriptor = base64.b64decode(report_descriptor_b64)
   rd.SetContents(report_descriptor)
 
@@ -115,11 +115,10 @@ class LinuxTest(unittest.TestCase):
         self.assertEqual(dev.GetInReportDataLength(), 64)
         self.assertEqual(dev.GetOutReportDataLength(), 64)
 
-        dev.Write(list(range(0, 64)))
+        dev.Write(list(range(64)))
         # The HidDevice implementation prepends a zero-byte representing the
         # report ID
-        self.assertEqual(list(fake_dev_os.data_written),
-                         [0] + list(range(0, 64)))
+        self.assertEqual(list(fake_dev_os.data_written), [0] + list(range(64)))
 
         fake_dev_os.data_to_return = b'x' * 64
         self.assertEqual(dev.Read(), [120] * 64)  # chr(120) = 'x'

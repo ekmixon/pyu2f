@@ -51,14 +51,14 @@ class UtilTest(unittest.TestCase):
   def testFragmentedApdu(self):
     dev = util.FakeHidDevice(cid_to_allocate=None,
                              msg_reply=list(range(85, 0, -1)))
-    dev.Write([0, 0, 0, 1, 0x83, 0, 100] + [x for x in range(57)])
-    dev.Write([0, 0, 0, 1, 0] + [x for x in range(57, 100)])
-    self.assertEqual(
-        dev.Read(), [0, 0, 0, 1, 0x83, 0, 85] + [x for x in range(85, 28, -1)])
+    dev.Write([0, 0, 0, 1, 0x83, 0, 100] + list(range(57)))
+    dev.Write([0, 0, 0, 1, 0] + list(range(57, 100)))
+    self.assertEqual(dev.Read(),
+                     [0, 0, 0, 1, 0x83, 0, 85] + list(range(85, 28, -1)))
     self.assertEqual(
         dev.Read(),
-        [0, 0, 0, 1, 0] + [x for x in range(28, 0, -1)] + [0
-                                                           for _ in range(31)])
+        ([0, 0, 0, 1, 0] + list(range(28, 0, -1)) + [0 for _ in range(31)]),
+    )
 
 
 if __name__ == '__main__':

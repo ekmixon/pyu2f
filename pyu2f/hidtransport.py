@@ -27,9 +27,7 @@ from pyu2f import hid
 
 
 def HidUsageSelector(device):
-  if device['usage_page'] == 0xf1d0 and device['usage'] == 0x01:
-    return True
-  return False
+  return device['usage_page'] == 0xf1d0 and device['usage'] == 0x01
 
 
 def DiscoverLocalHIDU2FDevices(selector=HidUsageSelector):
@@ -98,7 +96,7 @@ class UsbHidTransport(object):
     def ToWireFormat(self):
       """Serializes the packet."""
       ret = bytearray(64)
-      ret[0:4] = self.cid
+      ret[:4] = self.cid
       ret[4] = self.cmd
       struct.pack_into('>H', ret, 5, self.size)
       ret[7:7 + len(self.payload)] = self.payload
@@ -123,7 +121,7 @@ class UsbHidTransport(object):
       ba = bytearray(data)
       if len(ba) != packet_size:
         raise errors.InvalidPacketError()
-      cid = ba[0:4]
+      cid = ba[:4]
       cmd = ba[4]
       size = struct.unpack('>H', bytes(ba[5:7]))[0]
       payload = ba[7:7 + size]  # might truncate at packet_size
@@ -159,7 +157,7 @@ class UsbHidTransport(object):
     def ToWireFormat(self):
       """Serializes the packet."""
       ret = bytearray(self.packet_size)
-      ret[0:4] = self.cid
+      ret[:4] = self.cid
       ret[4] = self.seq
       ret[5:5 + len(self.payload)] = self.payload
       return list(map(int, ret))
@@ -183,7 +181,7 @@ class UsbHidTransport(object):
       ba = bytearray(data)
       if len(ba) != packet_size:
         raise errors.InvalidPacketError()
-      cid = ba[0:4]
+      cid = ba[:4]
       seq = ba[4]
       # We don't know the size limit a priori here without seeing the init
       # packet, so truncation needs to be done in the higher level protocol
@@ -210,8 +208,7 @@ class UsbHidTransport(object):
     self.InternalInit()
 
   def SendMsgBytes(self, msg):
-    r = self.InternalExchange(UsbHidTransport.U2FHID_MSG, msg)
-    return r
+    return self.InternalExchange(UsbHidTransport.U2FHID_MSG, msg)
 
   def SendBlink(self, length):
     return self.InternalExchange(UsbHidTransport.U2FHID_PROMPT,
@@ -230,7 +227,7 @@ class UsbHidTransport(object):
     r = self.InternalExchange(UsbHidTransport.U2FHID_INIT, nonce)
     if len(r) < 17:
       raise errors.HidError('unexpected init reply len')
-    if r[0:8] != nonce:
+    if r[:8] != nonce:
       raise errors.HidError('nonce mismatch')
     self.cid = bytearray(r[8:12])
 
@@ -239,7 +236,7 @@ class UsbHidTransport(object):
   def InternalExchange(self, cmd, payload_in):
     """Sends and receives a message from the device."""
     # make a copy because we destroy it below
-    self.logger.debug('payload: ' + str(list(payload_in)))
+    self.logger.debug(f'payload: {list(payload_in)}')
     payload = bytearray()
     payload[:] = payload_in
     for _ in range(2):
@@ -262,18 +259,18 @@ class UsbHidTransport(object):
     length_to_send = len(payload)
 
     max_payload = self.packet_size - 7
-    first_frame = payload[0:max_payload]
+    first_frame = payload[:max_payload]
     first_packet = UsbHidTransport.InitPacket(self.packet_size, self.cid, cmd,
                                               len(payload), first_frame)
-    del payload[0:max_payload]
+    del payload[:max_payload]
     length_to_send -= len(first_frame)
     self.InternalSendPacket(first_packet)
 
     seq = 0
     while length_to_send > 0:
       max_payload = self.packet_size - 5
-      next_frame = payload[0:max_payload]
-      del payload[0:max_payload]
+      next_frame = payload[:max_payload]
+      del payload[:max_payload]
       length_to_send -= len(next_frame)
       next_packet = UsbHidTransport.ContPacket(self.packet_size, self.cid, seq,
                                                next_frame)
@@ -282,16 +279,16 @@ class UsbHidTransport(object):
 
   def InternalSendPacket(self, packet):
     wire = packet.ToWireFormat()
-    self.logger.debug('sending packet: ' + str(wire))
+    self.logger.debug(f'sending packet: {str(wire)}')
     self.hid_device.Write(wire)
 
   def InternalReadFrame(self):
-        # TODO(gdasher): Figure out timeouts.  Today, this implementation
-        # blocks forever at the HID level waiting for a response to a report.
-        # This may not be reasonable behavior (though in practice in seems to be
-        # OK on the set of devices and machines tested so far).
+      # TODO(gdasher): Figure out timeouts.  Today, this implementation
+      # blocks forever at the HID level waiting for a response to a report.
+      # This may not be reasonable behavior (though in practice in seems to be
+      # OK on the set of devices and machines tested so far).
     frame = self.hid_device.Read()
-    self.logger.debug('recv: ' + str(frame))
+    self.logger.debug(f'recv: {str(frame)}')
     return frame
 
   def InternalRecv(self):
@@ -327,5 +324,5 @@ class UsbHidTransport(object):
       seq += 1
 
     # truncate incomplete frames
-    data = data[0:first_packet.size]
+    data = data[:first_packet.size]
     return (first_packet.cmd, data)

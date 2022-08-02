@@ -193,14 +193,13 @@ class LinuxHidDevice(base.HidDevice):
               '/sys/class/hidraw', dev,
               'device/report_descriptor'))
       uevent_path = os.path.join('/sys/class/hidraw', dev, 'device/uevent')
-      rd_file = open(rd_path, 'rb')
-      uevent_file = open(uevent_path, 'rb')
-      desc = base.DeviceDescriptor()
-      desc.path = os.path.join('/dev/', dev)
-      ParseReportDescriptor(rd_file.read(), desc)
-      ParseUevent(uevent_file.read(), desc)
+      with open(rd_path, 'rb') as rd_file:
+        uevent_file = open(uevent_path, 'rb')
+        desc = base.DeviceDescriptor()
+        desc.path = os.path.join('/dev/', dev)
+        ParseReportDescriptor(rd_file.read(), desc)
+        ParseUevent(uevent_file.read(), desc)
 
-      rd_file.close()
       uevent_file.close()
       yield desc.ToPublicDict()
 
@@ -209,11 +208,10 @@ class LinuxHidDevice(base.HidDevice):
     self.dev = os.open(path, os.O_RDWR)
     self.desc = base.DeviceDescriptor()
     self.desc.path = path
-    rd_file = open(os.path.join('/sys/class/hidraw',
+    with open(os.path.join('/sys/class/hidraw',
                                 os.path.basename(path),
-                                'device/report_descriptor'), 'rb')
-    ParseReportDescriptor(rd_file.read(), self.desc)
-    rd_file.close()
+                                'device/report_descriptor'), 'rb') as rd_file:
+      ParseReportDescriptor(rd_file.read(), self.desc)
 
   def GetInReportDataLength(self):
     """See base class."""
@@ -231,5 +229,4 @@ class LinuxHidDevice(base.HidDevice):
   def Read(self):
     """See base class."""
     raw_in = os.read(self.dev, self.GetInReportDataLength())
-    decoded_in = list(bytearray(raw_in))
-    return decoded_in
+    return list(bytearray(raw_in))

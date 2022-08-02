@@ -30,23 +30,23 @@ else:
 
 
 def MakeKeyboard(path, usage):
-  d = {}
-  d['vendor_id'] = 1133  # Logitech
-  d['product_id'] = 49948
-  d['path'] = path
-  d['usage'] = usage
-  d['usage_page'] = 1
-  return d
+  return {
+      'vendor_id': 1133,
+      'product_id': 49948,
+      'path': path,
+      'usage': usage,
+      'usage_page': 1,
+  }
 
 
 def MakeU2F(path):
-  d = {}
-  d['vendor_id'] = 4176
-  d['product_id'] = 1031
-  d['path'] = path
-  d['usage'] = 1
-  d['usage_page'] = 0xf1d0
-  return d
+  return {
+      'vendor_id': 4176,
+      'product_id': 1031,
+      'path': path,
+      'usage': 1,
+      'usage_page': 61904,
+  }
 
 
 def RPad(collection, to_size):
@@ -136,16 +136,16 @@ class TransportTest(unittest.TestCase):
       self.assertEqual(reply, bytearray([0x01, 0x90, 0x00]))
 
   def testFragmentedResponseMsg(self):
-    body = bytearray([x % 256 for x in range(0, 1000)])
+    body = bytearray([x % 256 for x in range(1000)])
     fake_hid_dev = util.FakeHidDevice(bytearray([0x00, 0x00, 0x00, 0x01]), body)
     t = hidtransport.UsbHidTransport(fake_hid_dev)
 
     reply = t.SendMsgBytes([0x00, 0x01, 0x00, 0x00])
     # Confirm we properly reassemble the message
-    self.assertEqual(reply, bytearray(x % 256 for x in range(0, 1000)))
+    self.assertEqual(reply, bytearray(x % 256 for x in range(1000)))
 
   def testFragmentedSendApdu(self):
-    body = bytearray(x % 256 for x in range(0, 1000))
+    body = bytearray(x % 256 for x in range(1000))
     fake_hid_dev = util.FakeHidDevice(
         bytearray([0x00, 0x00, 0x00, 0x01]), [0x90, 0x00])
     t = hidtransport.UsbHidTransport(fake_hid_dev)

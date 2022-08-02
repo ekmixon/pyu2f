@@ -200,16 +200,13 @@ def GetDeviceIntProperty(dev_ref, key):
     return None
 
   if cf.CFGetTypeID(type_ref) != cf.CFNumberGetTypeID():
-    raise errors.OsHidError('Expected number type, got {}'.format(
-        cf.CFGetTypeID(type_ref)))
+    raise errors.OsHidError(
+        f'Expected number type, got {cf.CFGetTypeID(type_ref)}')
 
   out = ctypes.c_int32()
   ret = cf.CFNumberGetValue(type_ref, K_CF_NUMBER_SINT32_TYPE,
                             ctypes.byref(out))
-  if not ret:
-    return None
-
-  return out.value
+  return out.value if ret else None
 
 
 def GetDeviceStringProperty(dev_ref, key):
@@ -221,17 +218,14 @@ def GetDeviceStringProperty(dev_ref, key):
     return None
 
   if cf.CFGetTypeID(type_ref) != cf.CFStringGetTypeID():
-    raise errors.OsHidError('Expected string type, got {}'.format(
-        cf.CFGetTypeID(type_ref)))
+    raise errors.OsHidError(
+        f'Expected string type, got {cf.CFGetTypeID(type_ref)}')
 
   type_ref = ctypes.cast(type_ref, CF_STRING_REF)
   out = ctypes.create_string_buffer(DEVICE_STRING_PROPERTY_BUFFER_SIZE)
   ret = cf.CFStringGetCString(type_ref, out, DEVICE_STRING_PROPERTY_BUFFER_SIZE,
                               K_CF_STRING_ENCODING_UTF8)
-  if not ret:
-    return None
-
-  return out.value.decode('utf8')
+  return out.value.decode('utf8') if ret else None
 
 
 def GetDevicePath(device_handle):
@@ -287,8 +281,10 @@ def DeviceReadThread(hid_device):
 
   # Run the run loop
   run_loop_run_result = K_CF_RUN_LOOP_RUN_TIMED_OUT
-  while (run_loop_run_result == K_CF_RUN_LOOP_RUN_TIMED_OUT or
-         run_loop_run_result == K_CF_RUN_LOOP_RUN_HANDLED_SOURCE):
+  while run_loop_run_result in [
+         K_CF_RUN_LOOP_RUN_TIMED_OUT,
+         K_CF_RUN_LOOP_RUN_HANDLED_SOURCE,
+     ]:
     run_loop_run_result = cf.CFRunLoopRunInMode(
         K_CF_RUNLOOP_DEFAULT_MODE,
         1000,  # Timeout in seconds
@@ -368,8 +364,7 @@ class MacOsHidDevice(base.HidDevice):
     # Open device
     result = iokit.IOHIDDeviceOpen(self.device_handle, 0)
     if result != K_IO_RETURN_SUCCESS:
-      raise errors.OsHidError('Failed to open device for communication: {}'
-                              .format(result))
+      raise errors.OsHidError(f'Failed to open device for communication: {result}')
 
     # Create read queue
     self.read_queue = queue.Queue()

@@ -48,8 +48,15 @@ class ApduTest(unittest.TestCase):
                                 0x00, 0x00, 0x00, 0x00, 0x00]))
 
   def testSerializeCommandApduTooLong(self):
-    self.assertRaises(errors.InvalidCommandError, apdu.CommandApdu, 0, 0x01,
-                      0x03, 0x04, bytearray(0 for x in range(0, 65536)))
+    self.assertRaises(
+        errors.InvalidCommandError,
+        apdu.CommandApdu,
+        0,
+        0x01,
+        0x03,
+        0x04,
+        bytearray(0 for _ in range(65536)),
+    )
 
   def testResponseApduParse(self):
     resp = apdu.ResponseApdu(bytearray([0x05, 0x04, 0x90, 0x00]))

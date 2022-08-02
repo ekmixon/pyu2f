@@ -63,7 +63,7 @@ class HardwareTest(unittest.TestCase):
     self.assertEqual(reply, bytearray([0x01, 0x02]))
     self.assertEqual(mock_transport.SendMsgBytes.call_count, 1)
     (sent_msg,), _ = mock_transport.SendMsgBytes.call_args
-    self.assertEqual(sent_msg[0:4], bytearray([0x00, 0x01, 0x03, 0x00]))
+    self.assertEqual(sent_msg[:4], bytearray([0x00, 0x01, 0x03, 0x00]))
     self.assertEqual(sent_msg[7:-2], bytearray(challenge_param + app_param))
 
   def testRegisterTUPRequired(self):
@@ -105,11 +105,11 @@ class HardwareTest(unittest.TestCase):
     self.assertEqual(mock_transport.SendMsgBytes.call_count, 2)
     (sent_msg,), _ = mock_transport.SendMsgBytes.call_args_list[0]
     self.assertEqual(len(sent_msg), 7)
-    self.assertEqual(sent_msg[0:4], bytearray([0x00, 0x03, 0x00, 0x00]))
+    self.assertEqual(sent_msg[:4], bytearray([0x00, 0x03, 0x00, 0x00]))
     self.assertEqual(sent_msg[4:7], bytearray([0x00, 0x00, 0x00]))  # Le
     (sent_msg,), _ = mock_transport.SendMsgBytes.call_args_list[1]
     self.assertEqual(len(sent_msg), 9)
-    self.assertEqual(sent_msg[0:4], bytearray([0x00, 0x03, 0x00, 0x00]))
+    self.assertEqual(sent_msg[:4], bytearray([0x00, 0x03, 0x00, 0x00]))
     self.assertEqual(sent_msg[4:7], bytearray([0x00, 0x00, 0x00]))  # Lc
     self.assertEqual(sent_msg[7:9], bytearray([0x00, 0x00]))  # Le
 
@@ -137,7 +137,7 @@ class HardwareTest(unittest.TestCase):
     self.assertEqual(reply, bytearray([0x01, 0x02]))
     self.assertEqual(mock_transport.SendMsgBytes.call_count, 1)
     (sent_msg,), _ = mock_transport.SendMsgBytes.call_args
-    self.assertEqual(sent_msg[0:4], bytearray([0x00, 0x02, 0x03, 0x00]))
+    self.assertEqual(sent_msg[:4], bytearray([0x00, 0x02, 0x03, 0x00]))
     self.assertEqual(
         sent_msg[7:-2],
         bytearray(challenge_param + app_param + bytearray([4, 1, 2, 3, 4])))
@@ -160,7 +160,7 @@ class HardwareTest(unittest.TestCase):
     self.assertEqual(reply, bytearray([0x01, 0x02]))
     self.assertEqual(mock_transport.SendMsgBytes.call_count, 1)
     (sent_msg,), _ = mock_transport.SendMsgBytes.call_args
-    self.assertEqual(sent_msg[0:4], bytearray([0x00, 0x02, 0x07, 0x00]))
+    self.assertEqual(sent_msg[:4], bytearray([0x00, 0x02, 0x07, 0x00]))
     self.assertEqual(
         sent_msg[7:-2],
         bytearray(challenge_param + app_param + bytearray([4, 1, 2, 3, 4])))

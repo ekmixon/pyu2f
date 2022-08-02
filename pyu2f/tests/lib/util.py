@@ -68,7 +68,7 @@ class FakeHidDevice(base.HidDevice):
     """
 
     if len(data) < 64:
-      data = bytearray(data) + bytearray(0 for i in range(0, 64 - len(data)))
+      data = bytearray(data) + bytearray(0 for _ in range(64 - len(data)))
 
     if not self.transaction_active:
       self.transaction_active = True
@@ -84,7 +84,7 @@ class FakeHidDevice(base.HidDevice):
       self.received_packets.append(cont_packet)
 
     if len(self.packet_body) >= self.init_packet.size:
-      self.packet_body = self.packet_body[0:self.init_packet.size]
+      self.packet_body = self.packet_body[:self.init_packet.size]
       self.full_packet_received = True
 
   def Read(self):
@@ -111,7 +111,7 @@ class FakeHidDevice(base.HidDevice):
           1, hidtransport.UsbHidTransport.ERR_CHANNEL_BUSY)
       self.busy_count -= 1
     elif self.reply:  # reply in progress
-      next_frame = self.reply[0:59]
+      next_frame = self.reply[:59]
       self.reply = self.reply[59:]
 
       ret = hidtransport.UsbHidTransport.ContPacket(64, self.init_packet.cid,
@@ -119,7 +119,7 @@ class FakeHidDevice(base.HidDevice):
       self.seq += 1
     else:
       self.InternalGenerateReply()
-      first_frame = self.reply[0:57]
+      first_frame = self.reply[:57]
 
       ret = hidtransport.UsbHidTransport.InitPacket(
           64, self.init_packet.cid, self.init_packet.cmd, len(self.reply),
@@ -137,9 +137,9 @@ class FakeHidDevice(base.HidDevice):
     """Mark the channel busy for next busy_count read calls."""
     self.busy_count = busy_count
 
-  def InternalGenerateReply(self):  # pylint: disable=invalid-name
+  def InternalGenerateReply(self):# pylint: disable=invalid-name
     if self.init_packet.cmd == hidtransport.UsbHidTransport.U2FHID_INIT:
-      nonce = self.init_packet.payload[0:8]
+      nonce = self.init_packet.payload[:8]
       self.reply = nonce + self.cid_to_allocate + bytearray(
           b'\x01\x00\x00\x00\x00')
     elif self.init_packet.cmd == hidtransport.UsbHidTransport.U2FHID_PING:

@@ -103,9 +103,7 @@ class CommandApdu(object):
     return out
 
   def InternalEncodeLc(self):
-    dl = 0
-    if self.data:
-      dl = len(self.data)
+    dl = len(self.data) if self.data else 0
     # The top two bytes are guaranteed to be 0 by the assertion
     # in the constructor.
     fourbyte = struct.pack('>I', dl)

@@ -92,8 +92,7 @@ class CustomAuthenticator(baseauthenticator.BaseAuthenticator):
     # Ensure environment variable is present
     plugin_cmd = os.environ.get(SK_SIGNING_PLUGIN_ENV_VAR)
     if plugin_cmd is None:
-      raise errors.PluginError('{} env var is not set'
-                               .format(SK_SIGNING_PLUGIN_ENV_VAR))
+      raise errors.PluginError(f'{SK_SIGNING_PLUGIN_ENV_VAR} env var is not set')
 
     # Prepare input to signer
     client_data_map, signing_input = self._BuildPluginRequest(
@@ -159,13 +158,12 @@ class CustomAuthenticator(baseauthenticator.BaseAuthenticator):
     signature_data = str(plugin_response['signatureData'])
     key_handle = str(plugin_response['keyHandle'])
 
-    response = {
+    return {
         'clientData': encoded_client_data,
         'signatureData': signature_data,
         'applicationId': app_id,
         'keyHandle': key_handle,
     }
-    return response
 
   def _CallPlugin(self, cmd, input_json):
     """Calls the plugin and validates the response."""
@@ -188,27 +186,26 @@ class CustomAuthenticator(baseauthenticator.BaseAuthenticator):
     response = stdout[4:]
     if response_len != len(response):
       raise errors.PluginError(
-          'Plugin response length {} does not match data {} (exit_status={})'
-          .format(response_len, len(response), exit_status))
+          f'Plugin response length {response_len} does not match data {len(response)} (exit_status={exit_status})'
+      )
 
     # Ensure valid json
     try:
       json_response = json.loads(response.decode())
     except ValueError:
-      raise errors.PluginError('Plugin returned invalid output (exit_status={})'
-                               .format(exit_status))
+      raise errors.PluginError(
+          f'Plugin returned invalid output (exit_status={exit_status})')
 
     # Ensure response type
     if json_response.get('type') != 'sign_helper_reply':
-      raise errors.PluginError('Plugin returned invalid response type '
-                               '(exit_status={})'
-                               .format(exit_status))
+      raise errors.PluginError(
+          f'Plugin returned invalid response type (exit_status={exit_status})')
 
     # Parse response codes
     result_code = json_response.get('code')
     if result_code is None:
-      raise errors.PluginError('Plugin missing result code (exit_status={})'
-                               .format(exit_status))
+      raise errors.PluginError(
+          f'Plugin missing result code (exit_status={exit_status})')
 
     # Handle errors
     if result_code == SK_SIGNING_PLUGIN_TOUCH_REQUIRED:
@@ -217,17 +214,15 @@ class CustomAuthenticator(baseauthenticator.BaseAuthenticator):
       raise errors.U2FError(errors.U2FError.DEVICE_INELIGIBLE)
     elif result_code != SK_SIGNING_PLUGIN_NO_ERROR:
       raise errors.PluginError(
-          'Plugin failed with error {} - {} (exit_status={})'
-          .format(result_code,
-                  json_response.get('errorDetail'),
-                  exit_status))
+          f"Plugin failed with error {result_code} - {json_response.get('errorDetail')} (exit_status={exit_status})"
+      )
 
     # Ensure response data is present
     response_data = json_response.get('responseData')
     if response_data is None:
       raise errors.PluginErrors(
-          'Plugin returned output with missing responseData (exit_status={})'
-          .format(exit_status))
+          f'Plugin returned output with missing responseData (exit_status={exit_status})'
+      )
 
     return response_data
 

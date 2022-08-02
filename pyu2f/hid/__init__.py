@@ -43,7 +43,7 @@ def InternalPlatformSwitch(funcname, *args, **kwargs):
     clz = macos.MacOsHidDevice
 
   if not clz:
-    raise Exception('Unsupported platform: ' + sys.platform)
+    raise Exception(f'Unsupported platform: {sys.platform}')
 
   if funcname == '__init__':
     return clz(*args, **kwargs)

@@ -14,6 +14,7 @@
 
 """Implements raw HID device communication on Windows."""
 
+
 import ctypes
 from ctypes import wintypes
 
@@ -29,7 +30,6 @@ setupapi = ctypes.windll.SetupAPI
 kernel32 = ctypes.windll.Kernel32
 
 
-# Various structs that are used in the Windows APIs we call
 class GUID(ctypes.Structure):
   _fields_ = [("Data1", ctypes.c_ulong),
               ("Data2", ctypes.c_ushort),
@@ -46,7 +46,7 @@ if platform.architecture()[0] == "64bit":
 elif platform.architecture()[0] == "32bit":
   SETUPAPI_PACK = 1
 else:
-  raise errors.HidError("Unknown architecture: %s" % platform.architecture()[0])
+  raise errors.HidError(f"Unknown architecture: {platform.architecture()[0]}")
 
 
 class DeviceInterfaceData(ctypes.Structure):

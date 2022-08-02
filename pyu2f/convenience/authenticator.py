@@ -41,10 +41,7 @@ class CompositeAuthenticator(baseauthenticator.BaseAuthenticator):
     """See base class."""
     for authenticator in self.authenticators:
       if authenticator.IsAvailable():
-        result = authenticator.Authenticate(app_id,
-                                            challenge_data,
-                                            print_callback)
-        return result
+        return authenticator.Authenticate(app_id, challenge_data, print_callback)
 
     raise ValueError('No valid authenticators found')
 
